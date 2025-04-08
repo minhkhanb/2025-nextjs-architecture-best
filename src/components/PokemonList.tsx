@@ -1,20 +1,7 @@
 import Image from 'next/image';
-import Link from 'next/link'; // Import Link from next/link
-import { gql } from '@apollo/client';
-import client from '@src/lib/apollo-client'; // Import getClient from your Apollo client setup
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid'; // Import icons from Heroicons
-
-const GET_POKEMON_LIST = gql`
-  query GetPokemonList($offset: Int!, $limit: Int!) {
-    pokemon_v2_pokemon(offset: $offset, limit: $limit) {
-      id
-      name
-      image: pokemon_v2_pokemonsprites {
-        sprites
-      }
-    }
-  }
-`;
+import { GET_POKEMON_LIST } from '@src/graphql/pokemon/queries'; // Import query
+import client from '@src/lib/apollo-client'; // Import Apollo client
+import Pagination from './Pagination';
 
 export default async function PokemonList({
   page = 1,
@@ -30,7 +17,8 @@ export default async function PokemonList({
   });
 
   const pokemonList = data?.pokemon_v2_pokemon || [];
-  const totalPages = 10; // Example: Assume there are 10 pages of data
+  const totalCount = data?.pokemon_v2_pokemon_aggregate?.aggregate?.count || 0;
+  const totalPages = Math.ceil(totalCount / limit);
 
   if (pokemonList.length === 0) {
     return (
@@ -39,33 +27,6 @@ export default async function PokemonList({
       </p>
     );
   }
-
-  const getPageNumbers = () => {
-    const pages = [];
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (page <= 3) {
-        pages.push(1, 2, 3, 4, '...', totalPages);
-      } else if (page >= totalPages - 2) {
-        pages.push(
-          1,
-          '...',
-          totalPages - 3,
-          totalPages - 2,
-          totalPages - 1,
-          totalPages
-        );
-      } else {
-        pages.push(1, '...', page - 1, page, page + 1, '...', totalPages);
-      }
-    }
-    return pages;
-  };
-
-  const pageNumbers = getPageNumbers();
 
   return (
     <div className="p-4">
@@ -115,60 +76,7 @@ export default async function PokemonList({
           }
         )}
       </ul>
-      {/* Pagination Controls */}
-      <div className="flex justify-center mt-6 space-x-2">
-        {/* Previous Button */}
-        <Link
-          href={`?page=${page > 1 ? page - 1 : 1}`}
-          aria-label="Go to previous page"
-          className={`px-4 py-2 rounded-lg flex items-center ${
-            page === 1
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}
-        >
-          <ChevronLeftIcon className="h-5 w-5" />
-        </Link>
-
-        {/* Page Numbers */}
-        {pageNumbers.map((pageNumber, index) =>
-          typeof pageNumber === 'number' ? (
-            <Link
-              key={index}
-              href={`?page=${pageNumber}`}
-              aria-label={`Go to page ${pageNumber}`}
-              className={`px-4 py-2 rounded-lg ${
-                pageNumber === page
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              {pageNumber}
-            </Link>
-          ) : (
-            <span
-              key={index}
-              className="px-4 py-2 text-gray-500"
-              aria-hidden="true"
-            >
-              ...
-            </span>
-          )
-        )}
-
-        {/* Next Button */}
-        <Link
-          href={`?page=${page < totalPages ? page + 1 : totalPages}`}
-          aria-label="Go to next page"
-          className={`px-4 py-2 rounded-lg flex items-center ${
-            page === totalPages
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}
-        >
-          <ChevronRightIcon className="h-5 w-5" />
-        </Link>
-      </div>
+      <Pagination currentPage={page} totalPages={totalPages} baseUrl="" />
     </div>
   );
 }
