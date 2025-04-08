@@ -1,3 +1,5 @@
+import Link from 'next/link'; // Import Link from next/link
+
 export default function HomePage(): JSX.Element {
   return (
     <div className="container mx-auto px-6 py-16 text-center">
@@ -8,18 +10,18 @@ export default function HomePage(): JSX.Element {
         TailwindCSS makes it easy to create beautiful, responsive designs.
       </p>
       <div className="mt-6 space-x-4">
-        <a
+        <Link
           href="#"
           className="px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
         >
           Get Started
-        </a>
-        <a
+        </Link>
+        <Link
           href="#"
           className="px-6 py-3 text-blue-600 bg-gray-100 rounded-lg hover:bg-gray-200"
         >
           Learn More
-        </a>
+        </Link>
       </div>
     </div>
   );
