@@ -31,7 +31,6 @@ export default function PokemonList(): JSX.Element {
   if (loading) {
     return (
       <div className="p-4">
-        <h1 className="text-2xl font-bold text-center mb-4">Pokémon List</h1>
         <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {Array.from({ length: limit }).map((_, index) => (
             <li
@@ -68,7 +67,6 @@ export default function PokemonList(): JSX.Element {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold text-center mb-4">Pokémon List</h1>
       <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {pokemonList.map(
           (pokemon: {
