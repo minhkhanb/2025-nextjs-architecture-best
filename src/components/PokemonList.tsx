@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link'; // Import Link from next/link
 import { gql } from '@apollo/client';
 import client from '@src/lib/apollo-client'; // Import getClient from your Apollo client setup
 
@@ -36,6 +37,8 @@ export default async function PokemonList({
       </p>
     );
   }
+
+  console.log('PDebug page:', page);
 
   return (
     <div className="p-4">
@@ -83,6 +86,30 @@ export default async function PokemonList({
           }
         )}
       </ul>
+      {/* Pagination Controls */}
+      <div className="flex justify-center mt-6 space-x-4">
+        {page > 1 ? (
+          <Link
+            href={`?page=${page - 1}`}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Previous
+          </Link>
+        ) : (
+          <span
+            className="px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
+            aria-disabled="true"
+          >
+            Previous
+          </span>
+        )}
+        <Link
+          href={`?page=${page + 1}`}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Next
+        </Link>
+      </div>
     </div>
   );
 }
