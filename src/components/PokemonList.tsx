@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link'; // Import Link from next/link
 import { gql } from '@apollo/client';
 import client from '@src/lib/apollo-client'; // Import getClient from your Apollo client setup
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid'; // Import icons from Heroicons
 
 const GET_POKEMON_LIST = gql`
   query GetPokemonList($offset: Int!, $limit: Int!) {
@@ -29,6 +30,7 @@ export default async function PokemonList({
   });
 
   const pokemonList = data?.pokemon_v2_pokemon || [];
+  const totalPages = 10; // Example: Assume there are 10 pages of data
 
   if (pokemonList.length === 0) {
     return (
@@ -38,7 +40,32 @@ export default async function PokemonList({
     );
   }
 
-  console.log('PDebug page:', page);
+  const getPageNumbers = () => {
+    const pages = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (page <= 3) {
+        pages.push(1, 2, 3, 4, '...', totalPages);
+      } else if (page >= totalPages - 2) {
+        pages.push(
+          1,
+          '...',
+          totalPages - 3,
+          totalPages - 2,
+          totalPages - 1,
+          totalPages
+        );
+      } else {
+        pages.push(1, '...', page - 1, page, page + 1, '...', totalPages);
+      }
+    }
+    return pages;
+  };
+
+  const pageNumbers = getPageNumbers();
 
   return (
     <div className="p-4">
@@ -69,14 +96,16 @@ export default async function PokemonList({
                 {imageUrl ? (
                   <Image
                     src={imageUrl}
-                    alt={pokemon.name}
+                    alt={`Image of Pokémon ${pokemon.name}`}
                     width={96}
                     height={96}
                     className="object-contain mb-2 h-24 w-24"
                     priority
                   />
                 ) : (
-                  <p className="text-gray-500">No image available</p>
+                  <p className="text-gray-500">
+                    No image available for {pokemon.name}
+                  </p>
                 )}
                 <p className="text-lg font-medium">
                   {pokemon.id}. {pokemon.name}
@@ -87,27 +116,57 @@ export default async function PokemonList({
         )}
       </ul>
       {/* Pagination Controls */}
-      <div className="flex justify-center mt-6 space-x-4">
-        {page > 1 ? (
-          <Link
-            href={`?page=${page - 1}`}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Previous
-          </Link>
-        ) : (
-          <span
-            className="px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
-            aria-disabled="true"
-          >
-            Previous
-          </span>
-        )}
+      <div className="flex justify-center mt-6 space-x-2">
+        {/* Previous Button */}
         <Link
-          href={`?page=${page + 1}`}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          href={`?page=${page > 1 ? page - 1 : 1}`}
+          aria-label="Go to previous page"
+          className={`px-4 py-2 rounded-lg flex items-center ${
+            page === 1
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
         >
-          Next
+          <ChevronLeftIcon className="h-5 w-5" />
+        </Link>
+
+        {/* Page Numbers */}
+        {pageNumbers.map((pageNumber, index) =>
+          typeof pageNumber === 'number' ? (
+            <Link
+              key={index}
+              href={`?page=${pageNumber}`}
+              aria-label={`Go to page ${pageNumber}`}
+              className={`px-4 py-2 rounded-lg ${
+                pageNumber === page
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {pageNumber}
+            </Link>
+          ) : (
+            <span
+              key={index}
+              className="px-4 py-2 text-gray-500"
+              aria-hidden="true"
+            >
+              ...
+            </span>
+          )
+        )}
+
+        {/* Next Button */}
+        <Link
+          href={`?page=${page < totalPages ? page + 1 : totalPages}`}
+          aria-label="Go to next page"
+          className={`px-4 py-2 rounded-lg flex items-center ${
+            page === totalPages
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
+        >
+          <ChevronRightIcon className="h-5 w-5" />
         </Link>
       </div>
     </div>
