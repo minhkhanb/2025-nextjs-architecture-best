@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Link from 'next/link';
 import './globals.css';
-import ClientProvider from './ClientProvider'; // Import ClientProvider
+import Root from '@src/providers/Root'; // Import ClientProvider
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-gray-50">
-        <ClientProvider>
+        <Root>
           {/* Navigation Bar */}
           <header className="bg-white shadow">
             <div className="container mx-auto flex items-center justify-between px-6 py-4">
@@ -50,7 +50,7 @@ export default function RootLayout({
               © 2025 MyBrand. All rights reserved.
             </div>
           </footer>
-        </ClientProvider>
+        </Root>
       </body>
     </html>
   );
