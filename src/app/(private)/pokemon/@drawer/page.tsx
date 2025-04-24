@@ -1,3 +1,5 @@
+'use client';
+
 import Drawer from '@src/components/Drawer';
 import { useState } from 'react';
 
