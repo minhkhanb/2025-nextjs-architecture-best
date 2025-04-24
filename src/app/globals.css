@@ -29,3 +29,68 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Task management animations */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.task-grid-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.task-grid-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 300ms,
+    transform 300ms;
+}
+
+.task-grid-exit {
+  opacity: 1;
+}
+
+.task-grid-exit-active {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 300ms,
+    transform 300ms;
+}
+
+.kanban-board-enter {
+  opacity: 0;
+}
+
+.kanban-board-enter-active {
+  opacity: 1;
+  transition: opacity 300ms;
+}
+
+.kanban-board-exit {
+  opacity: 1;
+}
+
+.kanban-board-exit-active {
+  opacity: 0;
+  transition: opacity 300ms;
+}
+
+/* Task item animations */
+.task-item-highlight {
+  animation: highlight 2s ease-in-out;
+}
+
+@keyframes highlight {
+  0% {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+  50% {
+    background-color: rgba(59, 130, 246, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
