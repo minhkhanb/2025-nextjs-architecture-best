@@ -6,11 +6,13 @@ import { useTaskContext } from '@src/contexts/TaskContext';
 import TaskItem from './TaskItem';
 import TaskFilter from './TaskFilter';
 import TaskSkeleton from './TaskSkeleton';
+import TaskTable from './TaskTable';
 import {
   PlusIcon,
   Square2StackIcon,
   ListBulletIcon,
   ViewColumnsIcon,
+  TableCellsIcon,
   FunnelIcon,
 } from '@heroicons/react/24/outline';
 
@@ -19,7 +21,7 @@ interface TaskListProps {
   onEditTask: (task: Task) => void;
 }
 
-type ViewMode = 'grid' | 'list' | 'kanban';
+type ViewMode = 'grid' | 'list' | 'kanban' | 'table';
 
 const TaskList: React.FC<TaskListProps> = ({ onAddTask, onEditTask }) => {
   const { tasks, updateTask, deleteTask } = useTaskContext();
@@ -30,7 +32,7 @@ const TaskList: React.FC<TaskListProps> = ({ onAddTask, onEditTask }) => {
   const [assigneeFilter, setAssigneeFilter] = useState<string | null>(null);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>('table'); // Default to table view
   const [isLoading, setIsLoading] = useState(true);
   const [showKanbanFilter, setShowKanbanFilter] = useState(false);
 
@@ -203,6 +205,18 @@ const TaskList: React.FC<TaskListProps> = ({ onAddTask, onEditTask }) => {
               <ListBulletIcon className="h-5 w-5" />
             </button>
             <button
+              onClick={() => handleViewModeChange('table')}
+              className={`p-2 ${
+                viewMode === 'table'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-100'
+              } transition-colors duration-150 ease-in-out`}
+              title="Table view"
+              aria-label="Table view"
+            >
+              <TableCellsIcon className="h-5 w-5" />
+            </button>
+            <button
               onClick={() => handleViewModeChange('kanban')}
               className={`p-2 ${
                 viewMode === 'kanban'
@@ -244,9 +258,14 @@ const TaskList: React.FC<TaskListProps> = ({ onAddTask, onEditTask }) => {
       </div>
 
       {/* Filters - based on view mode */}
-      {(viewMode !== 'kanban' || showKanbanFilter) && (
+      {((viewMode !== 'kanban' && viewMode !== 'table') ||
+        showKanbanFilter) && (
         <div
-          className={`transition-all duration-300 ease-in-out ${showKanbanFilter ? 'opacity-100 max-h-[500px]' : viewMode !== 'kanban' ? 'opacity-100 max-h-[500px]' : 'opacity-0 max-h-0 overflow-hidden'}`}
+          className={`transition-all duration-300 ease-in-out ${
+            showKanbanFilter || (viewMode !== 'kanban' && viewMode !== 'table')
+              ? 'opacity-100 max-h-[500px]'
+              : 'opacity-0 max-h-0 overflow-hidden'
+          }`}
         >
           <TaskFilter
             statusFilter={statusFilter}
@@ -299,11 +318,28 @@ const TaskList: React.FC<TaskListProps> = ({ onAddTask, onEditTask }) => {
               </div>
             ))}
           </div>
+        ) : viewMode === 'table' ? (
+          <div className="bg-white rounded-lg shadow overflow-hidden animate-pulse">
+            <div className="h-16 bg-gray-50 border-b"></div>
+            <div className="h-12 border-b bg-gray-50"></div>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-16 border-b bg-white"></div>
+            ))}
+            <div className="h-14 bg-gray-50 border-t"></div>
+          </div>
         ) : (
           <TaskSkeleton viewMode={viewMode} />
         )
       ) : filteredTasks.length > 0 ? (
-        viewMode === 'kanban' ? (
+        viewMode === 'table' ? (
+          // TanStack Table view
+          <TaskTable
+            tasks={filteredTasks}
+            onEditTask={onEditTask}
+            onDeleteTask={deleteTask}
+            onStatusChange={handleStatusChange}
+          />
+        ) : viewMode === 'kanban' ? (
           // Kanban board view
           <div className="flex space-x-4 overflow-x-auto pb-6 pt-2 -mx-4 px-4 animate-fade-in">
             {Object.values(TaskStatus).map((status) => (

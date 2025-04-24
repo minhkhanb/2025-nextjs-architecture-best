@@ -88,12 +88,20 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const parsedTasks = JSON.parse(storedTasks);
         // Convert string dates back to Date objects
-        const formattedTasks = parsedTasks.map((task: any) => ({
-          ...task,
-          createdAt: new Date(task.createdAt),
-          updatedAt: new Date(task.updatedAt),
-          dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-        }));
+        const formattedTasks = parsedTasks.map(
+          (
+            task: Omit<Task, 'createdAt' | 'updatedAt' | 'dueDate'> & {
+              createdAt: string;
+              updatedAt: string;
+              dueDate?: string;
+            }
+          ) => ({
+            ...task,
+            createdAt: new Date(task.createdAt),
+            updatedAt: new Date(task.updatedAt),
+            dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+          })
+        );
         setTasks(formattedTasks);
       } catch (error) {
         console.error('Failed to parse tasks from localStorage', error);
