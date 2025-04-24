@@ -12,10 +12,10 @@ export interface Task {
 }
 
 export enum TaskStatus {
-  TODO = 'TO DO',
-  IN_PROGRESS = 'IN PROGRESS',
-  REVIEW = 'REVIEW',
-  DONE = 'DONE',
+  TODO = 'To Do',
+  IN_PROGRESS = 'In Progress',
+  REVIEW = 'Review',
+  DONE = 'Done',
 }
 
 export enum TaskPriority {

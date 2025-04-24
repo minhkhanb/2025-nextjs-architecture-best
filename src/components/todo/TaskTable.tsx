@@ -13,6 +13,7 @@ import {
   ColumnFiltersState,
 } from '@tanstack/react-table';
 import { Task, TaskStatus, TaskPriority } from '@src/types/Task';
+import SelectDropdown, { SelectOption } from '../todo/SelectDropdown';
 import {
   ArrowUpIcon,
   ArrowDownIcon,
@@ -41,66 +42,137 @@ const TaskTable: React.FC<TaskTableProps> = ({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
+  // Utility functions to convert enums to SelectOption format
+  const statusOptions: SelectOption[] = [
+    { value: '', label: 'All Status' },
+    ...Object.values(TaskStatus).map((status) => ({
+      value: status,
+      label: status,
+    })),
+  ];
+
+  const priorityOptions: SelectOption[] = [
+    { value: '', label: 'All Priorities' },
+    ...Object.values(TaskPriority).map((priority) => ({
+      value: priority,
+      label: priority,
+    })),
+  ];
+
+  // For status dropdown in table cells (without the "All Status" option)
+  const statusCellOptions: SelectOption[] = Object.values(TaskStatus).map(
+    (status) => ({
+      value: status,
+      label: status,
+    })
+  );
+
   const columnHelper = createColumnHelper<Task>();
 
   const columns = useMemo(
     () => [
       columnHelper.accessor((row) => row.title, {
         id: 'title',
-        header: () => <span>Title</span>,
+        header: () => <span>TITLE</span>,
         cell: (info) => (
           <div className="font-medium text-gray-900">{info.getValue()}</div>
         ),
       }),
       columnHelper.accessor((row) => row.description, {
         id: 'description',
-        header: () => <span>Description</span>,
+        header: () => <span>DESCRIPTION</span>,
         cell: (info) => (
-          <div className="text-sm text-gray-500 truncate max-w-xs">
+          <div className="text-sm text-gray-500 max-w-xs truncate hover:text-clip hover:overflow-visible hover:whitespace-normal">
             {info.getValue() || 'No description'}
           </div>
         ),
+        size: 250, // Set the column's base size for the TanStack table
       }),
       columnHelper.accessor((row) => row.status, {
         id: 'status',
-        header: () => <span>Status</span>,
+        header: () => <span>STATUS</span>,
         cell: (info) => {
           const status = info.getValue();
-          const getStatusClass = () => {
+
+          // Get status-specific styling
+          const getStatusColor = () => {
             switch (status) {
               case TaskStatus.TODO:
-                return 'bg-gray-100 text-gray-800';
+                return {
+                  dot: 'bg-gray-400',
+                  text: 'text-gray-700',
+                  bg: 'bg-gray-50',
+                  border: 'border-gray-200',
+                };
               case TaskStatus.IN_PROGRESS:
-                return 'bg-blue-100 text-blue-800';
+                return {
+                  dot: 'bg-blue-400',
+                  text: 'text-blue-700',
+                  bg: 'bg-blue-50',
+                  border: 'border-blue-200',
+                };
               case TaskStatus.REVIEW:
-                return 'bg-yellow-100 text-yellow-800';
+                return {
+                  dot: 'bg-yellow-400',
+                  text: 'text-yellow-700',
+                  bg: 'bg-yellow-50',
+                  border: 'border-yellow-200',
+                };
               case TaskStatus.DONE:
-                return 'bg-green-100 text-green-800';
+                return {
+                  dot: 'bg-green-400',
+                  text: 'text-green-700',
+                  bg: 'bg-green-50',
+                  border: 'border-green-200',
+                };
               default:
-                return 'bg-gray-100 text-gray-800';
+                return {
+                  dot: 'bg-gray-400',
+                  text: 'text-gray-700',
+                  bg: 'bg-gray-50',
+                  border: 'border-gray-200',
+                };
             }
           };
+
+          const statusColors = getStatusColor();
+
+          // Custom styling for the button inside SelectDropdown
+          const getButtonStyle = () => {
+            return {
+              background: 'transparent',
+              borderRadius: '9999px',
+              fontWeight: 500,
+              fontSize: '0.875rem',
+              border: '0',
+              boxShadow: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              height: '2rem',
+            };
+          };
+
           return (
-            <select
-              value={status}
-              onChange={(e) =>
-                onStatusChange(info.row.original.id, e.target.value)
-              }
-              className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusClass()} border-0 cursor-pointer focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
-            >
-              {Object.values(TaskStatus).map((statusOption) => (
-                <option key={statusOption} value={statusOption}>
-                  {statusOption}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center">
+              <SelectDropdown
+                options={statusCellOptions}
+                value={status}
+                onChange={(newValue) =>
+                  onStatusChange(info.row.original.id, newValue as string)
+                }
+                className={`min-w-[140px] rounded-lg border ${statusColors.border} ${statusColors.bg}`}
+                buttonClassName={`py-0 border-0 bg-transparent focus-visible:ring-0 focus-visible:border-0 ${statusColors.text}`}
+                buttonStyle={getButtonStyle()}
+                allowClear={false}
+              />
+            </div>
           );
         },
         filterFn: 'equals',
       }),
       columnHelper.accessor((row) => row.priority, {
         id: 'priority',
-        header: () => <span>Priority</span>,
+        header: () => <span>PRIORITY</span>,
         cell: (info) => {
           const priority = info.getValue();
           const getPriorityClass = () => {
@@ -119,9 +191,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
           };
           return (
             <span
-              className={`inline-flex text-xs font-medium px-2.5 py-0.5 rounded-full ${getPriorityClass()}`}
+              className={`inline-flex text-xs font-medium px-2.5 py-0.5 rounded ${getPriorityClass()}`}
             >
-              {priority}
+              {priority.toUpperCase()}
             </span>
           );
         },
@@ -186,9 +258,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
               {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded-full"
+                  className="bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded"
                 >
-                  {tag}
+                  {tag.toUpperCase()}
                 </span>
               ))}
             </div>
@@ -257,43 +329,29 @@ const TaskTable: React.FC<TaskTableProps> = ({
             />
           </div>
           <div className="flex gap-2">
-            <select
+            <SelectDropdown
+              options={statusOptions}
               value={
                 (table.getColumn('status')?.getFilterValue() as string) ?? ''
               }
-              onChange={(e) =>
-                table
-                  .getColumn('status')
-                  ?.setFilterValue(e.target.value || undefined)
+              onChange={(value) =>
+                table.getColumn('status')?.setFilterValue(value || undefined)
               }
-              className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-            >
-              <option value="">All Status</option>
-              {Object.values(TaskStatus).map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
+              placeholder="All Status"
+              className="w-40"
+            />
 
-            <select
+            <SelectDropdown
+              options={priorityOptions}
               value={
                 (table.getColumn('priority')?.getFilterValue() as string) ?? ''
               }
-              onChange={(e) =>
-                table
-                  .getColumn('priority')
-                  ?.setFilterValue(e.target.value || undefined)
+              onChange={(value) =>
+                table.getColumn('priority')?.setFilterValue(value || undefined)
               }
-              className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-            >
-              <option value="">All Priorities</option>
-              {Object.values(TaskPriority).map((priority) => (
-                <option key={priority} value={priority}>
-                  {priority}
-                </option>
-              ))}
-            </select>
+              placeholder="All Priorities"
+              className="w-40"
+            />
           </div>
         </div>
       </div>
@@ -335,7 +393,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
               table.getRowModel().rows.map((row) => (
                 <tr key={row.id} className="hover:bg-gray-50 transition-colors">
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
+                    <td key={cell.id} className="px-6 py-4">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -348,7 +406,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-6 py-16 whitespace-nowrap text-center text-gray-500"
+                  className="px-6 py-16 text-center text-gray-500"
                 >
                   No tasks found. Try adjusting your filters.
                 </td>
@@ -410,19 +468,17 @@ const TaskTable: React.FC<TaskTableProps> = ({
           </div>
           <div className="flex gap-x-2 items-center">
             <span className="text-sm text-gray-700">Rows per page:</span>
-            <select
-              value={table.getState().pagination.pageSize}
-              onChange={(e) => {
-                table.setPageSize(Number(e.target.value));
-              }}
-              className="rounded border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-            >
-              {[5, 10, 25, 50].map((pageSize) => (
-                <option key={pageSize} value={pageSize}>
-                  {pageSize}
-                </option>
-              ))}
-            </select>
+            <SelectDropdown
+              options={[5, 10, 25, 50].map((size) => ({
+                value: size.toString(),
+                label: size.toString(),
+              }))}
+              value={table.getState().pagination.pageSize.toString()}
+              onChange={(value) => table.setPageSize(Number(value))}
+              className="w-auto"
+              fitContent={true}
+              allowClear={false}
+            />
 
             <div className="flex gap-x-1">
               <button
